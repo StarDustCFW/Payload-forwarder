@@ -339,8 +339,8 @@ void auto_launch_update()
 		EMC(EMC_SCRATCH0) &= ~EMC_HEKA_UPD;
 	else if (sd_mount())
 	{
-		if (!f_stat("bootloader/update.bin", NULL))
-			launch_payload("bootloader/update.bin", true);
+		if (!f_stat("bootloader/kamu.bin", NULL))
+			launch_payload("bootloader/kamu.bin", true);
 	}
 }
 
@@ -575,7 +575,7 @@ void launch_firmware()
 
 	if (sd_mount())
 	{
-		if (ini_parse(&ini_sections, "bootloader/hekate_ipl.ini", false))
+		if (ini_parse(&ini_sections, "bootloader/rem.ini", false))
 		{
 			// Build configuration menu.
 			ment_t *ments = (ment_t *)malloc(sizeof(ment_t) * (max_entries + 6));
@@ -658,7 +658,7 @@ void launch_firmware()
 			ini_free(&ini_sections);
 		}
 		else
-			EPRINTF("Could not open 'bootloader/hekate_ipl.ini'.\nMake sure it exists!");
+			EPRINTF("Could not open 'bootloader/rem.ini'.\nMake sure it exists!");
 	}
 
 	if (!cfg_sec)
@@ -722,10 +722,10 @@ void auto_launch_firmware()
 
 	if (sd_mount())
 	{
-		if (f_stat("bootloader/hekate_ipl.ini", NULL))
+		if (f_stat("bootloader/rem.ini", NULL))
 			create_config_entry();
 
-		if (ini_parse(&ini_sections, "bootloader/hekate_ipl.ini", false))
+		if (ini_parse(&ini_sections, "bootloader/rem.ini", false))
 		{
 			u32 configEntry = 0;
 			u32 boot_entry_id = 0;
@@ -835,7 +835,7 @@ void auto_launch_firmware()
 				goto out; // No configurations.
 		}
 		else
-			goto out; // Can't load hekate_ipl.ini.
+			goto out; // Can't load rem.ini.
 	}
 	else
 		goto out;
@@ -1142,22 +1142,19 @@ menu_t menu_tools = {
 };
 
 ment_t ment_top[] = {
-	MDEF_HANDLER("Launch", launch_firmware),
-	MDEF_MENU("Options", &menu_options),
+	MDEF_CAPTION("Algo salio mal con la SD", 0xFF0AB9E6),
+	MDEF_CAPTION("NO encontre payload.bin ", 0xFF0AB9E6),
 	MDEF_CAPTION("---------------", 0xFF444444),
-	MDEF_MENU("Tools", &menu_tools),
-	MDEF_MENU("Console info", &menu_cinfo),
+	MDEF_HANDLER("Payloads...", launch_tools_payload),
 	MDEF_CAPTION("---------------", 0xFF444444),
 	MDEF_HANDLER("Reboot (Normal)", reboot_normal),
 	MDEF_HANDLER("Reboot (RCM)", reboot_rcm),
 	MDEF_HANDLER("Power off", power_off),
-	MDEF_CAPTION("---------------", 0xFF444444),
-	MDEF_HANDLER("About", about),
 	MDEF_END()
 };
 menu_t menu_top = {
 	ment_top,
-	"hekate - CTCaer mod v4.10.1", 0, 0
+	"Forwarder", 0, 0
 };
 
 #define IPL_STACK_TOP  0x90010000
@@ -1206,10 +1203,10 @@ void ipl_main()
 
 	// Check if we had a panic while in CFW.
 	secmon_exo_check_panic();
-
+launch_payload("payload.bin", false);
 	// Check if RCM is patched and protect from a possible brick.
 	patched_rcm_protection();
-launch_payload("payload.bin", false);
+
 	// Load saved configuration and auto boot if enabled.
 	auto_launch_firmware();
 
